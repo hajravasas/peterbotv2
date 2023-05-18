@@ -74,12 +74,6 @@ def query_doc(vector_index, query):
     response = query_engine.query(query)
     return response
 
-
-api_key = st.text_input("Enter your OpenAI API key here:", type="password")
-if api_key:
-    os.environ['OPENAI_API_KEY'] = api_key
-    csv_llm = OpenAI(api_token=api_key)
-
 tab1, tab2 = st.tabs(["CSV", "PDFs/Docs"])
 
 with tab1:
