@@ -4,10 +4,22 @@ import pandas as pd
 import streamlit as st
 from llama_index import GPTVectorStoreIndex, SimpleDirectoryReader
 from llama_index import download_loader
+from llama_index.vector_stores import PineconeVectorStore
+from llama_index.storage.storage_context import StorageContext
 from matplotlib import pyplot as plt
 from pandasai.llm.openai import OpenAI
 
-documents_folder = "./documents"
+documents_folder = "documents"
+
+# def main():
+#     print("Hello, PETERBOT!")
+#     documents = SimpleDirectoryReader(documents_folder).load_data()
+#     vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
+#     storage_context = StorageContext.from_defaults(vector_store=vector_store)
+#     index = GPTVectorStoreIndex.from_documents(documents, storage_context=storage_context)
+
+# if __name__ == "__main__":
+#     main()
 
 # Load PandasAI loader, Which is a wrapper over PandasAI library
 PandasAIReader = download_loader("PandasAIReader")
@@ -61,10 +73,10 @@ def create_index():
     # NOTE: You can create vectors for multiple files at once.
     try:
         documents = SimpleDirectoryReader(documents_folder).load_data()
+        index = GPTVectorStoreIndex.from_documents(documents)
+        return index
     except Exception as e:
         st.error("Failed to read documents")
-    index = GPTVectorStoreIndex.from_documents(documents)
-    return index
 
 
 def query_doc(vector_index, query):
