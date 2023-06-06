@@ -10,7 +10,7 @@
         "type": "python",
         "request": "launch",
         "module": "streamlit",
-        "args": ["run", "path_to_the_py_file"]
+        "args": ["run", "/Users/peter.olah/codes/peterbotv2/peterbot.py"]
       }
     ]
   }
