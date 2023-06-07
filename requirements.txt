@@ -1,5 +1,6 @@
 llama-index
 streamlit
+streamlit-extras
 pandasai
 pypdf
 docx2txt
