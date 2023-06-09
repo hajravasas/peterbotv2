@@ -9,10 +9,12 @@ from llama_index.vector_stores import PineconeVectorStore
 from llama_index.storage.storage_context import StorageContext
 from matplotlib import pyplot as plt
 from pandasai.llm.openai import OpenAI
+from typing import Optional, Union
 from streamlit_extras.buy_me_a_coffee import button
 
 documents_folder = "documents"
 pinecone_api_key = os.environ.get("PINECONE_API_KEY")
+document_uploaded = False
 
 
 def main():
@@ -25,7 +27,7 @@ if __name__ == "__main__":
 # Load PandasAI loader, Which is a wrapper over PandasAI library
 PandasAIReader = download_loader("PandasAIReader")
 
-st.title("Welcome to `PeterBot! 🤖`")
+st.title("🤖`PeterBot!`🤖 welcomes you")
 st.header(
     "Interact with your documents using LLMs\nPowered by `LlamaIndex🦙` \n")
 
@@ -71,38 +73,51 @@ def remove_file(file_path):
 @st.cache_resource
 def create_index():
     index_name = "peterbotindex"
-    # Create vectors for the file stored under Document folder.
-    # NOTE: You can create vectors for multiple files at once.
-    try:
-        documents = SimpleDirectoryReader(documents_folder).load_data()
-        pinecone.init(api_key=pinecone_api_key,
-                      environment="us-west4-gcp-free")
 
-        if index_name in pinecone.list_indexes():
-            print("Index already exists!!!")
-            pinecone_index = pinecone.Index(index_name)
-        else:
-            pinecone.create_index(index_name, dimension=1536)
-            pinecone_index = pinecone.Index(index_name=index_name)
+    query_params = st.experimental_get_query_params()
+    username_list = query_params.get("user_name", [None])
+    username: Optional[Union[str, None]
+                       ] = username_list[0] if username_list else None
 
-        vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
-        storage_context = StorageContext.from_defaults(
-            vector_store=vector_store)
-        index = GPTVectorStoreIndex.from_documents(
-            documents, storage_context=storage_context)
+    if document_uploaded:
+        try:
+            documents = SimpleDirectoryReader(documents_folder).load_data()
 
-        return index
-    except Exception as e:
-        print(e)
-        st.error("Failed to read documents")
+            if username is not None:
+                pinecone.init(api_key=pinecone_api_key,
+                              environment="us-west4-gcp-free")
+
+                if index_name in pinecone.list_indexes():
+                    print("Index already exists!!!")
+                    pinecone_index = pinecone.Index(index_name)
+                else:
+                    pinecone.create_index(index_name, dimension=1536)
+                    pinecone_index = pinecone.Index(index_name=index_name)
+
+                vector_store = PineconeVectorStore(
+                    pinecone_index=pinecone_index)
+                storage_context = StorageContext.from_defaults(
+                    vector_store=vector_store)
+                index = GPTVectorStoreIndex.from_documents(
+                    documents, storage_context=storage_context)
+            else:
+                index = GPTVectorStoreIndex.from_documents(documents)
+
+            return index
+        except Exception as e:
+            print(e)
+            st.error("Failed to read documents")
+    else:
+        st.warning("Upload a document you want to query.")
 
 
 def query_doc(vector_index, query):
     # Applies Similarity Algo, Finds the nearest match and
     # take the match and user query to OpenAI for rich response
-    query_engine = vector_index.as_query_engine()
-    response = query_engine.query(query)
-    return response
+    if document_uploaded:
+        query_engine = vector_index.as_query_engine()
+        response = query_engine.query(query)
+        return response
 
 
 tab1, tab2, tab3 = st.tabs(["Ask PeterBot", "PDFs/Docs", "CSV"])
@@ -114,6 +129,7 @@ with tab1:
         "Ask any questions about (engineering) management")
     if input_text is not None:
         if st.button("Ask PeterBot"):
+            document_uploaded = True
             st.info("Your query: \n" + input_text)
             with st.spinner("Processing your query.."):
                 index = create_index()
@@ -135,6 +151,7 @@ with tab2:
     if input_doc is not None:
         st.info("Doc Uploaded Successfully")
         file_name = save_file(input_doc)
+        document_uploaded = True
         index = create_index()
         remove_file(file_name)
 
@@ -143,19 +160,23 @@ with tab2:
 
     if input_text is not None:
         if st.button("Ask"):
-            st.info("Your query: \n" + input_text)
-            with st.spinner("Processing your query.."):
-                index = create_index()
-                response = query_doc(index, input_text)
-                print(response)
+            if document_uploaded:
+                st.info("Your query: \n" + input_text)
+                with st.spinner("Processing your query.."):
+                    # index = create_index()
+                    response = query_doc(index, input_text)
+                    print(response)
 
-            st.success(response)
+                st.success(response)
 
-            st.divider()
-            # Shows the source documents context which
-            # has been used to prepare the response
-            st.write("Source Documents")
-            st.write(response.get_formatted_sources())
+                st.divider()
+                # Shows the source documents context which
+                # has been used to prepare the response
+                if response is not None:
+                    st.write("Source Documents")
+                    st.write(response.get_formatted_sources())
+            else:
+                st.error("Upload a document you want to query! 📰")
 
 with tab3:
     st.write("Chat with CSV files using PandasAI loader with LlamaIndex")
@@ -179,7 +200,6 @@ with tab3:
                 st.pyplot(plt.gcf())
             else:
                 st.success(response)
-
 
 st.caption(
     "Thank you for trying out PeterBot! If you want to support the project, would love your contributions!")
