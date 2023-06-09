@@ -111,6 +111,43 @@ def create_index():
         st.warning("Upload a document you want to query.")
 
 
+@st.cache_resource
+def create_index_from_pinecone():
+    index_name = "peterbotindex"
+
+    query_params = st.experimental_get_query_params()
+    username_list = query_params.get("user_name", [None])
+    username: Optional[Union[str, None]
+                       ] = username_list[0] if username_list else None
+
+    if document_uploaded:
+        try:
+            documents = SimpleDirectoryReader(documents_folder).load_data()
+            pinecone.init(api_key=pinecone_api_key,
+                          environment="us-west4-gcp-free")
+
+            if index_name in pinecone.list_indexes():
+                print("Index already exists!!!")
+                pinecone_index = pinecone.Index(index_name)
+            else:
+                pinecone.create_index(index_name, dimension=1536)
+                pinecone_index = pinecone.Index(index_name=index_name)
+
+            vector_store = PineconeVectorStore(
+                pinecone_index=pinecone_index)
+            storage_context = StorageContext.from_defaults(
+                vector_store=vector_store)
+            index = GPTVectorStoreIndex.from_documents(
+                documents, storage_context=storage_context)
+
+            return index
+        except Exception as e:
+            print(e)
+            st.error("Failed to read documents")
+    else:
+        st.warning("Upload a document you want to query.")
+
+
 def query_doc(vector_index, query):
     # Applies Similarity Algo, Finds the nearest match and
     # take the match and user query to OpenAI for rich response
@@ -132,7 +169,7 @@ with tab1:
             document_uploaded = True
             st.info("Your query: \n" + input_text)
             with st.spinner("Processing your query.."):
-                index = create_index()
+                index = create_index_from_pinecone()
                 response = query_doc(index, input_text)
                 print(response)
 
