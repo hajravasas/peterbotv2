@@ -178,8 +178,8 @@ with tab1:
             st.divider()
             # Shows the source documents context which
             # has been used to prepare the response
-            st.write("Source Documents")
-            st.write(response.get_formatted_sources())
+            # st.write("Source Documents")
+            # st.write(response.get_formatted_sources())
 
 with tab2:
     st.write("Chat with PDFs/Docs")
