@@ -14,6 +14,7 @@ from streamlit_extras.buy_me_a_coffee import button
 
 documents_folder = "documents"
 pinecone_api_key = os.environ.get("PINECONE_API_KEY")
+csv_llm = OpenAI(api_token=os.environ['OPENAI_API_KEY'])
 document_uploaded = False
 
 
@@ -28,18 +29,20 @@ if __name__ == "__main__":
 PandasAIReader = download_loader("PandasAIReader")
 
 st.title("🤖`PeterBot!`🤖 welcomes you")
-st.header(
-    "Interact with your documents using LLMs\nPowered by `LlamaIndex🦙` \n")
 
 
 def get_csv_result(df, query):
-    reader = PandasAIReader(llm=csv_llm)
-    csv_response = reader.run_pandas_ai(
-        df,
-        query,
-        is_conversational_answer=False
-    )
-    return csv_response
+    try:
+        reader = PandasAIReader(llm=csv_llm)
+        csv_response = reader.run_pandas_ai(
+            df,
+            query,
+            is_conversational_answer=False
+        )
+        return csv_response
+    except Exception as e:
+        print(e)
+        st.error("Failed to read documents")
 
 
 def save_file(doc):
@@ -157,7 +160,8 @@ def query_doc(vector_index, query):
         return response
 
 
-tab1, tab2, tab3 = st.tabs(["Ask PeterBot", "PDFs/Docs", "CSV"])
+# tab1, tab2, tab3 = st.tabs(["Ask PeterBot", "Upload your docs", "Upload your CSV"])
+tab1, tab2 = st.tabs(["Ask PeterBot", "Upload Your Doc"])
 
 with tab1:
     st.write("Ask PeterBot any questions about (engineering) management")
@@ -182,8 +186,9 @@ with tab1:
             # st.write(response.get_formatted_sources())
 
 with tab2:
-    st.write("Chat with PDFs/Docs")
-    input_doc = st.file_uploader("Upload your Docs")
+    st.write(
+        "Upload your own PDF or txt file and interact with it using the usual ChatGPT skills.")
+    input_doc = st.file_uploader("Upload your Documents")
 
     if input_doc is not None:
         st.info("Doc Uploaded Successfully")
@@ -215,28 +220,28 @@ with tab2:
             else:
                 st.error("Upload a document you want to query! 📰")
 
-with tab3:
-    st.write("Chat with CSV files using PandasAI loader with LlamaIndex")
-    input_csv = st.file_uploader("Upload your CSV file", type=['csv'])
+# with tab3:
+#     st.write("Chat with CSV files using PandasAI loader with LlamaIndex")
+#     input_csv = st.file_uploader("Upload your CSV file", type=['csv'])
 
-    if input_csv is not None:
-        st.info("CSV Uploaded Successfully")
-        df = pd.read_csv(input_csv)
-        st.dataframe(df, use_container_width=True)
+#     if input_csv is not None:
+#         st.info("CSV Uploaded Successfully")
+#         df = pd.read_csv(input_csv)
+#         st.dataframe(df, use_container_width=True)
 
-    st.divider()
+#     st.divider()
 
-    input_text = st.text_area("Ask your query")
+#     input_text = st.text_area("Ask your query")
 
-    if input_text is not None:
-        if st.button("Send"):
-            st.info("Your query: " + input_text)
-            with st.spinner('Processing your query...'):
-                response = get_csv_result(df, input_text)
-            if plt.get_fignums():
-                st.pyplot(plt.gcf())
-            else:
-                st.success(response)
+#     if input_text is not None:
+#         if st.button("Send"):
+#             st.info("Your query: " + input_text)
+#             with st.spinner('Processing your query...'):
+#                 response = get_csv_result(df, input_text)
+#             if plt.get_fignums():
+#                 st.pyplot(plt.gcf())
+#             else:
+#                 st.success(response)
 
 st.caption(
     "Thank you for trying out PeterBot! If you want to support the project, would love your contributions!")
