@@ -164,10 +164,8 @@ def query_doc(vector_index, query):
 tab1, tab2 = st.tabs(["Ask PeterBot", "Upload Your Doc"])
 
 with tab1:
-    st.write("Ask PeterBot any questions about (engineering) management")
-    st.divider()
     input_text = st.text_area(
-        "Ask any questions about (engineering) management")
+        "You can ask any questions about (engineering) management and PeterBot will try to answer it for you. Ask a question like *Is engineering management hard? Write a haiku* or *What are the foundations of engineering management, say it like a pirate.*", placeholder="Enter your question here.")
     if input_text is not None:
         if st.button("Ask PeterBot"):
             document_uploaded = True
@@ -187,7 +185,7 @@ with tab1:
 
 with tab2:
     st.write(
-        "Upload your own PDF or txt file and interact with it using the usual ChatGPT skills.")
+        "Upload your own PDF or .txt file and ask it any questions like you would ask ChatGPT.")
     input_doc = st.file_uploader("Upload your Documents")
 
     if input_doc is not None:
