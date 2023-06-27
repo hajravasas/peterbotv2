@@ -79,18 +79,13 @@ def remove_file(file_path):
 
 @st.cache_resource
 def create_index():
-    index_name = "peterbotindex"
-
-    query_params = st.experimental_get_query_params()
-    username_list = query_params.get("user_name", [None])
-    username: Optional[Union[str, None]
-                       ] = username_list[0] if username_list else None
+    index_name = lookup_index()
 
     if document_uploaded:
         try:
             documents = SimpleDirectoryReader(documents_folder).load_data()
 
-            if username is not None:
+            if user_info and user_info['sub'] is not None:
                 pinecone.init(api_key=pinecone_api_key,
                               environment="us-west4-gcp-free")
 
@@ -118,14 +113,27 @@ def create_index():
         st.warning("Upload a document you want to query.")
 
 
-@st.cache_resource
-def create_index_from_pinecone():
-    index_name = "peterbotindex"
-
+def lookup_index():
     query_params = st.experimental_get_query_params()
     username_list = query_params.get("user_name", [None])
     username: Optional[Union[str, None]
                        ] = username_list[0] if username_list else None
+
+    nickname = None
+    if user_info is not False:
+        nickname = user_info['nickname']
+
+    if nickname is not None:
+        return nickname + "-index"
+    else:
+        if username is not None:
+            return "peterbotindex"
+    return None
+
+
+@st.cache_resource
+def create_index_from_pinecone():
+    index_name = lookup_index()
 
     if document_uploaded:
         try:
@@ -165,7 +173,7 @@ def query_doc(vector_index, query):
 
 
 user_info = login_button(clientId, domain=domain)
-st.write(user_info)
+# st.write(user_info)
 
 # tab1, tab2, tab3 = st.tabs(["Ask PeterBot", "Upload your docs", "Upload your CSV"])
 tab1, tab2 = st.tabs(["Ask PeterBot", "Upload Your Doc"])
