@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import streamlit as st
 import pinecone
+from auth0_component import login_button
 from llama_index import GPTVectorStoreIndex, SimpleDirectoryReader
 from llama_index import download_loader
 from llama_index.vector_stores import PineconeVectorStore
@@ -16,6 +17,9 @@ documents_folder = "documents"
 pinecone_api_key = os.environ.get("PINECONE_API_KEY")
 csv_llm = OpenAI(api_token=os.environ['OPENAI_API_KEY'])
 document_uploaded = False
+clientId = os.getenv("AUTH0_CLIENT_ID")
+domain = "dev-takuxm4bkqc2jayl.us.auth0.com"
+redirect_uri = 'http://localhost:8501/component/auth0_component.login_button/index.html'
 
 
 def main():
@@ -159,6 +163,9 @@ def query_doc(vector_index, query):
         response = query_engine.query(query)
         return response
 
+
+user_info = login_button(clientId, domain=domain)
+st.write(user_info)
 
 # tab1, tab2, tab3 = st.tabs(["Ask PeterBot", "Upload your docs", "Upload your CSV"])
 tab1, tab2 = st.tabs(["Ask PeterBot", "Upload Your Doc"])

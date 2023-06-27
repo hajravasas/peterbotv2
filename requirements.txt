@@ -1,6 +1,7 @@
 llama-index
 streamlit
 streamlit-extras
+streamlit-auth0-component
 pandasai
 pypdf
 docx2txt
