@@ -79,7 +79,7 @@ def remove_file(file_path):
 
 @st.cache_resource
 def create_index():
-    index_name = lookup_index()
+    index_name = "will put logic here to look up index per user"
 
     if document_uploaded:
         try:
@@ -126,8 +126,7 @@ def lookup_index():
     if nickname is not None:
         return nickname + "-index"
     else:
-        if username is not None:
-            return "peterbotindex"
+        return "peterbotindex"
     return None
 
 
