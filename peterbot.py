@@ -131,10 +131,10 @@ def lookup_index():
 
 
 @st.cache_resource
-def create_index_from_pinecone():
+def create_index_from_pinecone(is_document_uploaded=False):
     index_name = lookup_index()
 
-    if document_uploaded:
+    if document_uploaded or is_document_uploaded:
         try:
             documents = SimpleDirectoryReader(documents_folder).load_data()
             pinecone.init(api_key=pinecone_api_key,
@@ -162,10 +162,10 @@ def create_index_from_pinecone():
         st.warning("Upload a document you want to query.")
 
 
-def query_doc(vector_index, query):
+def query_doc(vector_index, query, is_document_uploaded=False):
     # Applies Similarity Algo, Finds the nearest match and
     # take the match and user query to OpenAI for rich response
-    if document_uploaded:
+    if document_uploaded or is_document_uploaded:
         query_engine = vector_index.as_query_engine()
         response = query_engine.query(query)
         return response
