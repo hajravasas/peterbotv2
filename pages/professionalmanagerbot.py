@@ -1,4 +1,4 @@
-import peterbot
+import onedocbot
 import streamlit as st
 
 st.markdown("<h2 style='text-align: center;'>Welcome to the<br>🤖ProfessionalManagerBot🤖</h2>",
@@ -13,7 +13,7 @@ if st.button("Ask ProfessionalManagerBot"):
     else:
         st.info("Your query: \n" + input_text)
         with st.spinner("Processing your query.."):
-            index = peterbot.create_index_from_pinecone(True)
-            response = peterbot.query_doc(index, input_text, True)
+            index = onedocbot.create_index_from_pinecone(True)
+            response = onedocbot.query_doc(index, input_text, True)
             print(response)
         st.success(response)
