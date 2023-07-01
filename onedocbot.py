@@ -20,6 +20,7 @@ document_uploaded = False
 clientId = os.getenv("AUTH0_CLIENT_ID")
 domain = "dev-takuxm4bkqc2jayl.us.auth0.com"
 redirect_uri = 'http://localhost:8501/component/auth0_component.login_button/index.html'
+user_info = None
 
 
 def main():
@@ -31,8 +32,6 @@ if __name__ == "__main__":
 
 # Load PandasAI loader, Which is a wrapper over PandasAI library
 PandasAIReader = download_loader("PandasAIReader")
-
-st.title("🤖`PeterBot!`🤖 welcomes you")
 
 
 def get_csv_result(df, query):
@@ -85,7 +84,7 @@ def create_index():
         try:
             documents = SimpleDirectoryReader(documents_folder).load_data()
 
-            if user_info and user_info['sub'] is not None:
+            if user_info is not None and user_info['sub'] is not None:
                 pinecone.init(api_key=pinecone_api_key,
                               environment="us-west4-gcp-free")
 
@@ -171,21 +170,28 @@ def query_doc(vector_index, query, is_document_uploaded=False):
         return response
 
 
-user_info = login_button(clientId, domain=domain)
-# st.write(user_info)
+st.title("🤖`OneDocBot!`🤖 welcomes you")
 
-# tab1, tab2, tab3 = st.tabs(["Ask PeterBot", "Upload your docs", "Upload your CSV"])
-tab1, tab2 = st.tabs(["Ask PeterBot", "Upload Your Doc"])
+st.write(
+    "Upload a .pdf or .txt file and ask it any questions. Make sure to try out features like *summarize this doc in a few sentences*, *say it like a haiku*, etc...")
+input_doc = st.file_uploader("Upload your Documents")
 
-with tab1:
-    input_text = st.text_area(
-        "You can ask any questions about (engineering) management and PeterBot will try to answer it for you. Ask a question like *Is engineering management hard? Write a haiku* or *What are the foundations of engineering management, say it like a pirate.*", placeholder="Enter your question here.")
-    if input_text is not None:
-        if st.button("Ask PeterBot"):
-            document_uploaded = True
+if input_doc is not None:
+    st.info("Doc Uploaded Successfully")
+    file_name = save_file(input_doc)
+    document_uploaded = True
+    index = create_index()
+    remove_file(file_name)
+
+st.divider()
+input_text = st.text_area("Ask your question")
+
+if input_text is not None:
+    if st.button("Ask"):
+        if document_uploaded:
             st.info("Your query: \n" + input_text)
             with st.spinner("Processing your query.."):
-                index = create_index_from_pinecone()
+                # index = create_index()
                 response = query_doc(index, input_text)
                 print(response)
 
@@ -194,67 +200,15 @@ with tab1:
             st.divider()
             # Shows the source documents context which
             # has been used to prepare the response
-            # st.write("Source Documents")
-            # st.write(response.get_formatted_sources())
-
-with tab2:
-    st.write(
-        "Upload your own PDF or .txt file and ask it any questions like you would ask ChatGPT.")
-    input_doc = st.file_uploader("Upload your Documents")
-
-    if input_doc is not None:
-        st.info("Doc Uploaded Successfully")
-        file_name = save_file(input_doc)
-        document_uploaded = True
-        index = create_index()
-        remove_file(file_name)
-
-    st.divider()
-    input_text = st.text_area("Ask your question")
-
-    if input_text is not None:
-        if st.button("Ask"):
-            if document_uploaded:
-                st.info("Your query: \n" + input_text)
-                with st.spinner("Processing your query.."):
-                    # index = create_index()
-                    response = query_doc(index, input_text)
-                    print(response)
-
-                st.success(response)
-
-                st.divider()
-                # Shows the source documents context which
-                # has been used to prepare the response
-                if response is not None:
-                    st.write("Source Documents")
-                    st.write(response.get_formatted_sources())
-            else:
-                st.error("Upload a document you want to query! 📰")
-
-# with tab3:
-#     st.write("Chat with CSV files using PandasAI loader with LlamaIndex")
-#     input_csv = st.file_uploader("Upload your CSV file", type=['csv'])
-
-#     if input_csv is not None:
-#         st.info("CSV Uploaded Successfully")
-#         df = pd.read_csv(input_csv)
-#         st.dataframe(df, use_container_width=True)
-
-#     st.divider()
-
-#     input_text = st.text_area("Ask your query")
-
-#     if input_text is not None:
-#         if st.button("Send"):
-#             st.info("Your query: " + input_text)
-#             with st.spinner('Processing your query...'):
-#                 response = get_csv_result(df, input_text)
-#             if plt.get_fignums():
-#                 st.pyplot(plt.gcf())
-#             else:
-#                 st.success(response)
+            if response is not None:
+                st.write("Source Documents")
+                st.write(response.get_formatted_sources())
+        else:
+            st.error("Upload a document you want to query! 📰")
 
 st.caption(
     "Thank you for trying out PeterBot! If you want to support the project, would love your contributions!")
 button(username="profmanager", floating=False, width=221)
+
+user_info = login_button(clientId, domain=domain)
+# st.write(user_info)

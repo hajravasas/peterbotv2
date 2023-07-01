@@ -10,7 +10,7 @@
         "type": "python",
         "request": "launch",
         "module": "streamlit",
-        "args": ["run", "/Users/peter.olah/codes/peterbotv2/peterbot.py"]
+        "args": ["run", "/Users/peter.olah/codes/peterbotv2/onedocbot.py"]
       }
     ]
   }
