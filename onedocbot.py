@@ -11,6 +11,9 @@ from llama_index.storage.storage_context import StorageContext
 from matplotlib import pyplot as plt
 from pandasai.llm.openai import OpenAI
 from typing import Optional, Union
+from llama_index.node_parser import SimpleNodeParser
+from llama_index.storage.docstore import MongoDocumentStore
+from llama_index.storage.index_store.mongo_index_store import MongoIndexStore
 from streamlit_extras.buy_me_a_coffee import button
 
 documents_folder = "documents"
@@ -21,6 +24,9 @@ clientId = os.getenv("AUTH0_CLIENT_ID")
 domain = "dev-takuxm4bkqc2jayl.us.auth0.com"
 redirect_uri = 'http://localhost:8501/component/auth0_component.login_button/index.html'
 user_info = None
+
+user_info = login_button(clientId, domain=domain)
+st.write(user_info)
 
 
 def main():
@@ -76,29 +82,30 @@ def remove_file(file_path):
         os.remove(documents_folder + '/' + file_path)
 
 
-@st.cache_resource
 def create_index():
-    index_name = "will put logic here to look up index per user"
+    # index_name = "will put logic here to look up index per user"
 
     if document_uploaded:
         try:
             documents = SimpleDirectoryReader(documents_folder).load_data()
 
             if user_info is not None and user_info['sub'] is not None:
-                pinecone.init(api_key=pinecone_api_key,
-                              environment="us-west4-gcp-free")
-
-                if index_name in pinecone.list_indexes():
-                    print("Index already exists!!!")
-                    pinecone_index = pinecone.Index(index_name)
-                else:
-                    pinecone.create_index(index_name, dimension=1536)
-                    pinecone_index = pinecone.Index(index_name=index_name)
-
-                vector_store = PineconeVectorStore(
-                    pinecone_index=pinecone_index)
+                MONGO_URI = os.environ["MONGO_URI"]
+                nodes = SimpleNodeParser().get_nodes_from_documents(documents)
                 storage_context = StorageContext.from_defaults(
-                    vector_store=vector_store)
+                    docstore=MongoDocumentStore.from_uri(uri=MONGO_URI),
+                    index_store=MongoIndexStore.from_uri(uri=MONGO_URI),
+                )
+
+                storage_context.docstore.add_documents(nodes)
+
+                # if index_name in pinecone.list_indexes():
+                #     print("Index already exists!!!")
+                #     pinecone_index = pinecone.Index(index_name)
+                # else:
+                #     pinecone.create_index(index_name, dimension=1536)
+                #     pinecone_index = pinecone.Index(index_name=index_name)
+
                 index = GPTVectorStoreIndex.from_documents(
                     documents, storage_context=storage_context)
             else:
@@ -209,6 +216,3 @@ if input_text is not None:
 st.caption(
     "Thank you for trying out PeterBot! If you want to support the project, would love your contributions!")
 button(username="profmanager", floating=False, width=221)
-
-user_info = login_button(clientId, domain=domain)
-# st.write(user_info)
