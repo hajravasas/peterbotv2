@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 import pinecone
 from auth0_component import login_button
-from llama_index import GPTVectorStoreIndex, SimpleDirectoryReader
+from llama_index import GPTListIndex, GPTVectorStoreIndex, SimpleDirectoryReader
 from llama_index import download_loader
 from llama_index.vector_stores import PineconeVectorStore
 from llama_index.storage.storage_context import StorageContext
@@ -14,11 +14,13 @@ from typing import Optional, Union
 from llama_index.node_parser import SimpleNodeParser
 from llama_index.storage.docstore import MongoDocumentStore
 from llama_index.storage.index_store.mongo_index_store import MongoIndexStore
+from llama_index.indices.loading import load_index_from_storage
 from streamlit_extras.buy_me_a_coffee import button
 
 documents_folder = "documents"
 pinecone_api_key = os.environ.get("PINECONE_API_KEY")
 csv_llm = OpenAI(api_token=os.environ['OPENAI_API_KEY'])
+MONGO_URI = os.environ["MONGO_URI"]
 document_uploaded = False
 clientId = os.getenv("AUTH0_CLIENT_ID")
 domain = "dev-takuxm4bkqc2jayl.us.auth0.com"
@@ -90,7 +92,6 @@ def create_index():
             documents = SimpleDirectoryReader(documents_folder).load_data()
 
             if user_info is not None and user_info['sub'] is not None:
-                MONGO_URI = os.environ["MONGO_URI"]
                 nodes = SimpleNodeParser().get_nodes_from_documents(documents)
                 storage_context = StorageContext.from_defaults(
                     docstore=MongoDocumentStore.from_uri(uri=MONGO_URI),
@@ -166,6 +167,19 @@ def create_index_from_pinecone(is_document_uploaded=False):
             st.error("Failed to read documents")
     else:
         st.warning("Upload a document you want to query.")
+
+
+def create_index_from_mongo(is_document_uploaded=False):
+    storage_context = StorageContext.from_defaults(
+        docstore=MongoDocumentStore.from_uri(uri=MONGO_URI),
+        index_store=MongoIndexStore.from_uri(uri=MONGO_URI),
+    )
+
+    docstore = MongoDocumentStore.from_uri(
+        uri=MONGO_URI, db_name="db_docstore")
+    nodes = list(docstore.docs.values())
+    list_index = GPTListIndex(nodes, storage_context=storage_context)
+    return GPTVectorStoreIndex(nodes, storage_context=storage_context)
 
 
 def query_doc(vector_index, query, is_document_uploaded=False):

@@ -15,7 +15,7 @@ if st.button("Ask ProfessionalManagerBot"):
     else:
         st.info("Your query: \n" + input_text)
         with st.spinner("Processing your query.."):
-            index = onedocbot.create_index_from_pinecone(True)
+            index = onedocbot.create_index_from_mongo()
             response = onedocbot.query_doc(index, input_text, True)
             print(response)
         st.success(response)
