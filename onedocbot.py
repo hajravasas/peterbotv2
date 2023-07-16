@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import streamlit as st
 import pinecone
+import pkg_resources
 from auth0_component import login_button
 from llama_index import GPTListIndex, GPTVectorStoreIndex, SimpleDirectoryReader
 from llama_index import download_loader
@@ -31,8 +32,24 @@ user_info = None
 # st.write(user_info)
 
 
+def display_dependency_versions():
+    dependencies = [
+        'streamlit',
+        'numpy',
+        'pandas',
+        'llama_index'  # Add other dependencies here
+    ]
+    versions = [(d, pkg_resources.get_distribution(d).version)
+                for d in dependencies]
+
+    st.subheader("Dependency Versions")
+    for package, version in versions:
+        st.write(f"{package}: {version}")
+
+
 def main():
     print("Hello, PETERBOT!")
+    display_dependency_versions()
 
 
 if __name__ == "__main__":
