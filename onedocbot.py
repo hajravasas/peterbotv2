@@ -27,8 +27,8 @@ domain = "dev-takuxm4bkqc2jayl.us.auth0.com"
 redirect_uri = 'http://localhost:8501/component/auth0_component.login_button/index.html'
 user_info = None
 
-user_info = login_button(clientId, domain=domain)
-st.write(user_info)
+# user_info = login_button(clientId, domain=domain)
+# st.write(user_info)
 
 
 def main():
@@ -130,7 +130,7 @@ def lookup_index():
 
 @st.cache_resource
 def create_index_from_pinecone(is_document_uploaded=False):
-    index_name = lookup_index()
+    index_name = "peterbotindex"
 
     if document_uploaded or is_document_uploaded:
         try:
