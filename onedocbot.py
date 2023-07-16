@@ -5,7 +5,7 @@ import streamlit as st
 import pinecone
 import pkg_resources
 from auth0_component import login_button
-from llama_index import GPTListIndex, GPTVectorStoreIndex, SimpleDirectoryReader
+from llama_index import GPTListIndex, GPTVectorStoreIndex, SimpleDirectoryReader, VectorStoreIndex
 from llama_index import download_loader
 from llama_index.vector_stores import PineconeVectorStore
 from llama_index.storage.storage_context import StorageContext
@@ -151,7 +151,6 @@ def create_index_from_pinecone(is_document_uploaded=False):
 
     if document_uploaded or is_document_uploaded:
         try:
-            documents = SimpleDirectoryReader(documents_folder).load_data()
             pinecone.init(api_key=pinecone_api_key,
                           environment="us-west4-gcp-free")
 
@@ -166,8 +165,8 @@ def create_index_from_pinecone(is_document_uploaded=False):
                 pinecone_index=pinecone_index)
             storage_context = StorageContext.from_defaults(
                 vector_store=vector_store)
-            index = GPTVectorStoreIndex.from_documents(
-                documents, storage_context=storage_context)
+            index = VectorStoreIndex.from_vector_store(
+                vector_store, storage_context=storage_context)
 
             return index
         except Exception as e:
@@ -191,8 +190,6 @@ def create_index_from_mongo(is_document_uploaded=False):
 
 
 def query_doc(vector_index, query, is_document_uploaded=False):
-    # Applies Similarity Algo, Finds the nearest match and
-    # take the match and user query to OpenAI for rich response
     if document_uploaded or is_document_uploaded:
         query_engine = vector_index.as_query_engine()
         response = query_engine.query(query)
