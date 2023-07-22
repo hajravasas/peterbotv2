@@ -84,12 +84,21 @@ def remove_file(file_path):
         os.remove(documents_folder + '/' + file_path)
 
 
+def is_user():
+    query_params = st.experimental_get_query_params()
+    username_list = query_params.get("user_name", [None])
+    username: Optional[Union[str, None]
+                       ] = username_list[0] if username_list else None
+
+    return username is not None or (user_info is not None and user_info and user_info['sub'] is not None)
+
+
 def create_index():
     if document_uploaded:
         try:
             documents = SimpleDirectoryReader(documents_folder).load_data()
 
-            if user_info is not None and user_info and user_info['sub'] is not None:
+            if is_user():
                 nodes = SimpleNodeParser().get_nodes_from_documents(documents)
                 storage_context = StorageContext.from_defaults(
                     docstore=MongoDocumentStore.from_uri(uri=MONGO_URI),
@@ -109,23 +118,6 @@ def create_index():
             st.error("Failed to read documents")
     else:
         st.warning("Upload a document you want to query.")
-
-
-def lookup_index():
-    query_params = st.experimental_get_query_params()
-    username_list = query_params.get("user_name", [None])
-    username: Optional[Union[str, None]
-                       ] = username_list[0] if username_list else None
-
-    nickname = None
-    if user_info is not False:
-        nickname = user_info['nickname']
-
-    if nickname is not None:
-        return nickname + "-index"
-    else:
-        return "peterbotindex"
-    return None
 
 
 @st.cache_resource
