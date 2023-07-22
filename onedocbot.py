@@ -152,16 +152,14 @@ def create_index_from_pinecone(is_document_uploaded=False):
 
 
 def create_index_from_mongo(is_document_uploaded=False):
-    storage_context = StorageContext.from_defaults(
-        docstore=MongoDocumentStore.from_uri(uri=MONGO_URI),
-        index_store=MongoIndexStore.from_uri(uri=MONGO_URI),
-    )
-
     docstore = MongoDocumentStore.from_uri(
         uri=MONGO_URI, db_name="db_docstore")
+
+    storage_context = StorageContext.from_defaults(docstore=docstore)
+
     nodes = list(docstore.docs.values())
-    list_index = GPTListIndex(nodes, storage_context=storage_context)
-    return GPTVectorStoreIndex(nodes, storage_context=storage_context)
+    # list_index = GPTListIndex(nodes, storage_context=storage_context)
+    return VectorStoreIndex(nodes, storage_context=storage_context)
 
 
 def query_doc(vector_index, query, is_document_uploaded=False):
