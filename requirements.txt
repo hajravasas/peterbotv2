@@ -1,4 +1,4 @@
-llama-index
+llama-index==0.7.9
 streamlit
 streamlit-extras
 streamlit-auth0-component
