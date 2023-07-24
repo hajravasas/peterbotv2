@@ -4,6 +4,7 @@ streamlit-extras
 streamlit-auth0-component
 pandasai
 pypdf
+pymongo
 docx2txt
 pinecone-client
 transformers
