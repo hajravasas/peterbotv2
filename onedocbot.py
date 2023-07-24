@@ -39,21 +39,21 @@ if __name__ == "__main__":
     main()
 
 # Load PandasAI loader, Which is a wrapper over PandasAI library
-PandasAIReader = download_loader("PandasAIReader")
+# PandasAIReader = download_loader("PandasAIReader")
 
 
-def get_csv_result(df, query):
-    try:
-        reader = PandasAIReader(llm=csv_llm)
-        csv_response = reader.run_pandas_ai(
-            df,
-            query,
-            is_conversational_answer=False
-        )
-        return csv_response
-    except Exception as e:
-        print(e)
-        st.error("Failed to read documents")
+# def get_csv_result(df, query):
+#     try:
+#         reader = PandasAIReader(llm=csv_llm)
+#         csv_response = reader.run_pandas_ai(
+#             df,
+#             query,
+#             is_conversational_answer=False
+#         )
+#         return csv_response
+#     except Exception as e:
+#         print(e)
+#         st.error("Failed to read documents")
 
 
 def save_file(doc):
