@@ -1,10 +1,10 @@
 llama-index==0.7.9
-streamlit
+streamlit==1.22.0
 streamlit-extras
 streamlit-auth0-component
 pandasai
 pypdf
-pymongo
+pymongo==4.4.0
 docx2txt
 pinecone-client
 transformers
