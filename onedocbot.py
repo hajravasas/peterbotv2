@@ -97,18 +97,19 @@ def create_index():
     if document_uploaded:
         try:
             documents = SimpleDirectoryReader(documents_folder).load_data()
-
             if is_user():
-                nodes = SimpleNodeParser().get_nodes_from_documents(documents)
                 storage_context = StorageContext.from_defaults(
                     docstore=MongoDocumentStore.from_uri(uri=MONGO_URI),
                     index_store=MongoIndexStore.from_uri(uri=MONGO_URI),
                 )
 
+                parser = SimpleNodeParser()
+                nodes = parser.get_nodes_from_documents(documents)
+
                 storage_context.docstore.add_documents(nodes)
 
-                index = GPTVectorStoreIndex.from_documents(
-                    documents, storage_context=storage_context)
+                index = VectorStoreIndex(
+                    nodes, storage_context=storage_context)
             else:
                 index = GPTVectorStoreIndex.from_documents(documents)
 
