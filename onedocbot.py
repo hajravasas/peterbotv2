@@ -84,20 +84,26 @@ def remove_file(file_path):
         os.remove(documents_folder + '/' + file_path)
 
 
-def is_user():
+def get_user():
     query_params = st.experimental_get_query_params()
     username_list = query_params.get("user_name", [None])
     username: Optional[Union[str, None]
                        ] = username_list[0] if username_list else None
+    if (username is not None):
+        return username
+    if (user_info is not None and user_info):
+        return user_info
 
-    return username is not None or (user_info is not None and user_info and user_info['sub'] is not None)
+    return None
 
 
 def create_index():
     if document_uploaded:
         try:
             documents = SimpleDirectoryReader(documents_folder).load_data()
-            if is_user():
+            user = get_user()
+            if user is not None:
+                documents[0].metadata = {"user_info": user}
                 storage_context = StorageContext.from_defaults(
                     docstore=MongoDocumentStore.from_uri(uri=MONGO_URI),
                     index_store=MongoIndexStore.from_uri(uri=MONGO_URI),
