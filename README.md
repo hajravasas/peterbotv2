@@ -13,4 +13,4 @@ pip install -r requirements.txt
 ## Create a folder in the root dir and name it as `documents`
 
 ## Run the application
-`streamlit run onedocbot.py`
+`streamlit run onedocbot.py`    

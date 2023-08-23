@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import streamlit as st
 import pinecone
+
+from pymongo import MongoClient
 from auth0_component import login_button
 from llama_index import GPTListIndex, GPTVectorStoreIndex, SimpleDirectoryReader, VectorStoreIndex
 from llama_index import download_loader
@@ -162,11 +164,26 @@ def create_index_from_mongo(is_document_uploaded=False):
     docstore = MongoDocumentStore.from_uri(
         uri=MONGO_URI, db_name="db_docstore")
 
-    storage_context = StorageContext.from_defaults(docstore=docstore)
+    client = MongoClient(MONGO_URI)
+    db = client["db_docstore"]
+    collection = db["data"]
 
-    nodes = list(docstore.docs.values())
-    # list_index = GPTListIndex(nodes, storage_context=storage_context)
-    return VectorStoreIndex(nodes, storage_context=storage_context)
+    target_user = "peter"
+
+    query = {"metadata.user_info": target_user}
+
+    documents_for_user = collection.find(query)
+
+    for document in documents_for_user:
+        print(document)
+
+    parser = SimpleNodeParser()
+    nodes = parser.get_nodes_from_documents(documents_for_user.values())
+
+    # storage_context = StorageContext.from_defaults(docstore=docstore)
+
+    # nodes = list(docstore.docs.values())
+    return VectorStoreIndex(nodes)
 
 
 def query_doc(vector_index, query, is_document_uploaded=False):
