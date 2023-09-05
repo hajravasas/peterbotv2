@@ -2,7 +2,6 @@ import os
 
 import pandas as pd
 import streamlit as st
-import pinecone
 
 from pymongo import MongoClient
 from auth0_component import login_button
@@ -20,7 +19,6 @@ from llama_index.indices.loading import load_index_from_storage
 from streamlit_extras.buy_me_a_coffee import button
 
 documents_folder = "documents"
-pinecone_api_key = os.environ.get("PINECONE_API_KEY")
 csv_llm = OpenAI(api_token=os.environ['OPENAI_API_KEY'])
 MONGO_URI = os.environ["MONGO_URI"]
 document_uploaded = False
@@ -120,37 +118,6 @@ def create_index():
                     nodes, storage_context=storage_context)
             else:
                 index = GPTVectorStoreIndex.from_documents(documents)
-
-            return index
-        except Exception as e:
-            print(e)
-            st.error("Failed to read documents")
-    else:
-        st.warning("Upload a document you want to query.")
-
-
-@st.cache_resource
-def create_index_from_pinecone(is_document_uploaded=False):
-    index_name = "peterbotindex"
-
-    if document_uploaded or is_document_uploaded:
-        try:
-            pinecone.init(api_key=pinecone_api_key,
-                          environment="us-west4-gcp-free")
-
-            if index_name in pinecone.list_indexes():
-                print("Index already exists!!!")
-                pinecone_index = pinecone.Index(index_name)
-            else:
-                pinecone.create_index(index_name, dimension=1536)
-                pinecone_index = pinecone.Index(index_name=index_name)
-
-            vector_store = PineconeVectorStore(
-                pinecone_index=pinecone_index)
-            storage_context = StorageContext.from_defaults(
-                vector_store=vector_store)
-            index = VectorStoreIndex.from_vector_store(
-                vector_store, storage_context=storage_context)
 
             return index
         except Exception as e:

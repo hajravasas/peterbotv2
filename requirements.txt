@@ -6,5 +6,4 @@ pandasai
 pypdf
 pymongo==4.4.0
 docx2txt
-pinecone-client
 transformers
